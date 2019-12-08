@@ -1,0 +1,57 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+
+<body>
+<div class="banner">
+<p class="heading">Job Data Queries</p>
+</div>
+
+
+	<div class="navbar">
+		<ul>
+			<li><a title="Home" href="index.html">Home</a></li>
+			<li><a title="Search By Area" href="area.html">Search By Area</a></li>
+			<li><a title="Pay Rates" href="pay.html">Pay Rates</a></li>
+			<li class="contact"><a class="contact" style="background-color: #262626" title="Contact Us" href="#">Contact Us</a></li>
+		</ul>
+	</div>
+
+
+<div class="main">
+<div class="content">
+  <p>Enter your name and contact details and we'll get in touch with you as soon as possible.</p>
+  <!-- <form id="contactForm" action="http://localhost/processInput.php" method="post"> -->
+	<fieldset>
+	<legend>Personal Information</legend>
+    <input class="text" type="text" name="first" id="name" placeholder="First name" required/>
+	<br>
+	
+    <input class="text" type="text" name="second" id="second" placeholder="Surname" required/>
+	<br>
+	
+    <input class="text"type="email" name="email" id="email" placeholder="Contact email" required/>
+	<br>
+	
+    <input class="text" type="text" name="phone" id="phone" placeholder="Contact telephone (optional)"/>
+	<br>
+	
+	</fieldset>
+	<br>
+	
+	<fieldset>
+	<legend>Information</legend>
+    <textarea id="comment" rows="4" cols="50" name="comment" placeholder="Describe your issue..."></textarea>
+	</fieldset>
+	<br>
+	
+    <input type="button" name="submit" value="Submit" onclick="javascript:senddata()"/>
+  <!-- </form> -->
+</div>
+</div>
+</body>
+
+
+</html>

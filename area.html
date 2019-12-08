@@ -1,0 +1,160 @@
+<html>
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+
+<body>
+
+<div class="banner">
+<p class="heading">Job Data Queries</p>
+</div>
+
+<div class="navbar">
+	<ul>
+		<li><a title="Home" href="index.html">Home</a></li>
+		<li><a class="current" title="Search By Area" href="#">Search By Area</a></li>
+		<li><a title="Pay Rates" href="pay.html">Pay Rates</a></li>
+		<li class="contact"><a class="contact" title="Contact Us" href="contact.html">Contact Us</a></li>
+	</ul>
+</div>
+
+
+<div class="main">
+
+<div class="postcode">
+Enter your postcode here to receive information about the proportion of population engaged
+in various fields of work, as well as information on the MSP.
+<br>
+<input class="text" type="text" name="postcode" id="postcode" placeholder="POSTCODE" required/>
+<input type="button" name="submit" value="Submit" onclick="javascript:senddata()"/>
+
+<br></br>
+
+
+<img id="profilePicture" style="width:250px; height:auto"/>
+<div id="profileContent">
+</div>
+
+<div id="chartcontainer" style="height:600px; width:100%">
+</div>
+
+<script>
+var options = {};
+var longcode;
+var constituencyid;
+var personid;
+
+function senddata() {
+	var url = "http://api.lmiforall.org.uk/api/v1/census/jobs_breakdown?area=" + $("#postcode").val();
+	$.get(url,function(data) {
+		console.log(data);
+				 options = {
+			animationEnabled: true,
+			title: {
+				text: "Jobs available in area",                
+				fontColor: "Peru"
+			},	
+			axisY: {
+				tickThickness: 0,
+				lineThickness: 0,
+				valueFormatString: " ",
+				gridThickness: 0                    
+			},
+			axisX: {
+				tickThickness: 0,
+				lineThickness: 0,
+				labelFontSize: 18,
+				labelFontColor: "Peru"				
+			},
+			data: [{
+				indexLabelFontSize: 0,
+				toolTipContent: "<span style=\"color:#62C9C3\">{indexLabel}:</span> <span style=\"color:#CD853F\"><strong>{y}</strong></span>",
+				indexLabelPlacement: "inside",
+				indexLabelFontColor: "white",
+				indexLabelFontWeight: 600,
+				indexLabelFontFamily: "Verdana",
+				color: "#62C9C3",
+				type: "bar",
+				dataPoints: []
+			}]
+		};
+
+		
+		$.each(data.jobsBreakdown.sort(sortByNumberOfJobs), function(index, value) {
+			if (value.value>0) {
+			options.data[0].dataPoints.push({y:value.value, label:value.value, indexLabel:value.description})
+			}
+		})
+		
+		$("#chartcontainer").CanvasJSChart(options);
+
+	}).fail(function() {
+		alert("No data returned.")
+	}) 
+	url = "https://api.postcodes.io/scotland/postcodes/" + $("#postcode").val();
+	$.get(url, function(data) {
+		if (data.status != 404) {
+			longcode = data.result.codes.scottish_parliamentary_constituency;
+			url = "https://data.parliament.scot/api/constituencies";
+			$.get(url, function(data) {
+				var constituencyidarray = $.grep(data, function(a) {
+					return a.ConstituencyCode === longcode;
+				})
+				if (constituencyidarray.length > 0) {
+					constituencyid = constituencyidarray[0].ID
+					url = "https://data.parliament.scot/api/MemberElectionConstituencyStatuses";
+					$.get(url, function(data) {
+						var personarray = $.grep(data, function(a) {
+							return (a.ConstituencyID === constituencyid) && ((a.ValidUntilDate === null) || (a.ValidUntilDate >= new Date()));
+						})
+						if (personarray.length>0) {
+							personid = personarray[0].PersonID;
+							url = "https://data.parliament.scot/api/members";
+							$.get(url, function(data) {
+								var persondetailsarray = $.grep(data, function(a) {
+									return a.PersonID === personid
+								})
+								if (persondetailsarray.length>0) {
+									//console.log(persondetailsarray[0]);
+									$("#profilePicture").attr("src", persondetailsarray[0].PhotoURL);
+									var details = "<p>Name: " + persondetailsarray[0].ParliamentaryName + "<br>";
+									if (!persondetailsarray[0].BirthDateIsProtected) {
+										details = details + "Birth date: " + persondetailsarray[0].BirthDate.split("T")[0] + "<br>";
+										}
+									details = details + "Notes: " + persondetailsarray[0].Notes.replace(/\\n/g,"").replace(/\\r/g,"") + "<br>";
+									details = details + "Gender: " + (persondetailsarray[0].GenderTypeID == 2?"Male":"Female") + "</p>";
+									$("#profileContent").html(details);
+								}
+							})
+						}
+					})
+				}
+				
+			})
+		}
+	})
+	//{"PersonID":1894,"PhotoURL":"http://scottishparliament.thirdlight.com/file/35820937596","Notes":"\\r\\nDeclared ethnicity as Scottish.","BirthDate":"1951-08-22T00:00:00","BirthDateIsProtected":false,
+	//"ParliamentaryName":"Neil, Alex","PreferredName":"Alex","GenderTypeID":2,"IsCurrent":true},
+	//https://data.parliament.scot/api/members
+	
+	}
+
+
+
+function sortByNumberOfJobs(a, b) {
+	return((a.value<b.value)?-1:((a.value>b.value)?1:0));
+}
+</script>
+
+</div>
+
+
+
+
+
+</div>
+</body>
+</html>
